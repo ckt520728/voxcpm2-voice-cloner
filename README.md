@@ -1,12 +1,12 @@
 # VoxCPM2 Voice Cloner
 
-用 VoxCPM2 克隆你的聲音，生成任意語音。全自動安裝，自動偵測 GPU，零程式碼操作。
+用 VoxCPM2 克隆你的聲音，生成任意語音。全自動安裝，自動偵測 GPU，**一個網頁搞定全部流程**。
 
 ## 特色
 
 - **自動偵測 GPU**：NVIDIA CUDA / Intel Arc XPU / CPU 三種模式自動切換
 - ** Ultimate Cloning**：同時使用參考音 + 逐字稿，連語氣節奏都一起複製
-- **麥克風錄音**：內建錄音腳本，給你一段文字朗讀即可，逐字稿自動取得
+- **網頁操作**：`app.py` 提供完整網頁介面（錄音 → 克隆 → 生成 → 對話），瀏覽器開網址就能用
 - **Apache-2.0 授權**：VoxCPM2 模型可商用
 
 ## 系統需求
@@ -20,20 +20,7 @@
 - 約 5GB 硬碟空間（模型權重）
 - 麥克風
 
-## 聲音錄製
-
-本專案不含預設聲音，請先錄製你自己的參考音：
-
-```powershell
-.\.venv\Scripts\python.exe record.py --voice 我的聲音
-```
-
-螢幕會顯示一段文字，請對著麥克風自然地朗讀。錄完會存到 `voices/我的聲音/`（本地保留，不進版控）。
-
-> 你念的文字就是逐字稿，不需要額外做語音辨識。
-> `voices/` 目錄已從版控排除，參考音屬個人資料不會推上 GitHub。
-
-## 快速開始
+## 快速開始（三步）
 
 ### 1. 安裝
 
@@ -43,11 +30,28 @@ cd voxcpm2-voice-cloner
 .\install.ps1
 ```
 
-安裝腳本會自動：
-1. 建立 Python 3.12 虛擬環境
-2. 偵測你的 GPU 類型
-3. 安裝對應版本的 PyTorch
-4. 安裝 voxcpm + sounddevice
+安裝腳本自動完成：Python 3.12 venv / GPU 偵測 / PyTorch / voxcpm / XPU patch（若需要）
+
+### 2. 啟動網頁工具
+
+```powershell
+.\.venv\Scripts\python.exe app.py
+```
+
+瀏覽器打開 `http://127.0.0.1:7860`，三個分頁：
+
+| 分頁 | 功能 |
+|------|------|
+| 🎙️ 錄音 | 輸入聲音名稱 → 麥克風錄音（或上傳音檔）→ 存檔 |
+| 🔊 生成 | 選聲音 → 輸入文字 → 生成克隆語音 → 播放/下載 |
+| 💬 對話 | 選兩個聲音 → 寫對話腳本 → 生成多人對話 |
+
+### 3. 使用流程
+
+1. 切到「🎙️ 錄音」分頁 → 輸入聲音名稱 → 對著麥克風朗讀文字 → 存檔
+2. 切到「🔊 生成」分頁 → 選擇聲音 → 輸入文字 → 按生成 → 播放
+
+> 💡 如果瀏覽器找不到麥克風，可以先用 `record.py` 命令列錄音，再用網頁「上傳音檔」。
 5. 若為 Intel Arc，自動套用 XPU patch
 
 ### 2. 錄製參考音
@@ -88,23 +92,26 @@ cd voxcpm2-voice-cloner
 
 ```
 voxcpm2-voice-cloner/
-├── install.ps1              # 自動安裝腳本（偵測 GPU + 建環境）
-├── webui_record.py          # 網頁錄音介面（Gradio，瀏覽器麥克風）
-├── record.py                # 命令列錄音（麥克風，按 Enter 停止）
-├── clone.py                 # Ultimate Cloning 語音生成
-├── dialogue.py              # 多聲音對話生成範例
+├── app.py                    # 主程式：網頁工具（錄音 + 克隆 + 對話）
+├── install.ps1               # 自動安裝腳本（偵測 GPU + 建環境）
+├── webui_record.py           # 獨立錄音介面（Gradio，替代方案）
+├── record.py                 # 命令列錄音（替代方案）
+├── clone.py                  # 命令列語音生成（替代方案）
+├── dialogue.py               # 命令列對話生成（替代方案）
 ├── texts/
-│   └── sample_text.txt      # 給使用者朗讀的範例文字
-├── voices/                  # 聲音資料夾（.gitignore 排除，本地保留）
-│   └── <你的聲音>/          # 用 record.py 建立
-│       ├── ref_voice.wav    # 參考音
-│       └── prompt.txt       # 逐字稿
+│   └── sample_text.txt       # 給使用者朗讀的範例文字
+├── voices/                   # 聲音資料夾（.gitignore 排除，本地保留）
+│   └── <你的聲音>/           # 用 app.py 錄音時自動建立
+│       ├── ref_voice.wav     # 參考音
+│       └── prompt.txt        # 逐字稿
 ├── patches/
-│   ├── utils.py             # XPU device 支援 patch（Intel Arc 用）
-│   └── repatch_xpu.ps1      # voxcpm 更新後自動重 patch
-├── output/                  # 生成的語音輸出於此
-└── .gpu_type                # 安裝時記錄的 GPU 類型（.gitignore 排除）
+│   ├── utils.py              # XPU device 支援 patch（Intel Arc 用）
+│   └── repatch_xpu.ps1       # voxcpm 更新後自動重 patch
+├── output/                   # 生成的語音輸出於此
+└── .gpu_type                 # 安裝時記錄的 GPU 類型（.gitignore 排除）
 ```
+
+## 命令列工具（替代方案，不需 GUI 時可用）
 
 ## GPU 支援對照
 
